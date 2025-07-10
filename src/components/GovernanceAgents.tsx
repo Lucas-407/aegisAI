@@ -17,6 +17,13 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
   const [promptText, setPromptText] = useState('');
   const [outputText, setOutputText] = useState('');
   
+  // Policy Enforcer state - moved to top level to avoid hooks error
+  const [testContent, setTestContent] = useState('');
+  const [activityType, setActivityType] = useState('prompt_submission');
+  const [enforcementResult, setEnforcementResult] = useState<any>(null);
+  const [enforcementLoading, setEnforcementLoading] = useState(false);
+  const [selectedPolicy, setSelectedPolicy] = useState('all');
+  
   // Use governance hooks
   const { data: promptAnalysis, loading: promptLoading, error: promptError, analyzePrompt } = usePromptAnalysis();
   const { data: outputAudit, loading: outputLoading, error: outputError, auditOutput } = useOutputAudit();
@@ -320,12 +327,6 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
   );
 
   const renderPolicyEnforcer = () => {
-    const [testContent, setTestContent] = useState('');
-    const [activityType, setActivityType] = useState('prompt_submission');
-    const [enforcementResult, setEnforcementResult] = useState<any>(null);
-    const [enforcementLoading, setEnforcementLoading] = useState(false);
-    const [selectedPolicy, setSelectedPolicy] = useState('all');
-    
     // Mock policy enforcement data
     const activePolicies = [
       {
