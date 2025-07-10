@@ -87,52 +87,78 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
             <div className="mt-6 bg-white border border-gray-200 rounded-lg p-6">
               <h4 className="text-lg font-semibold mb-4">Analysis Results</h4>
               
+              {/* Extract the actual prompt guard results */}
+              {(() => {
+                const promptGuardResult = promptAnalysis.prompt_guard || promptAnalysis;
+                const policyEnforcerResult = promptAnalysis.policy_enforcer;
+                
+                return (
+                  <>
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center">
                   <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    promptAnalysis.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                    promptAnalysis.status === 'WARNING' ? 'bg-yellow-100 text-yellow-800' :
+                    promptGuardResult.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                    promptGuardResult.status === 'WARNING' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-red-100 text-red-800'
                   }`}>
-                    {promptAnalysis.status}
+                    {promptGuardResult.status}
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.risk_score.toFixed(1)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{promptGuardResult.risk_score?.toFixed(1) || '0.0'}</p>
                   <p className="text-sm text-gray-600">Risk Score</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.confidence.toFixed(1)}%</p>
+                  <p className="text-2xl font-bold text-gray-900">{promptGuardResult.confidence?.toFixed(1) || '0.0'}%</p>
                   <p className="text-sm text-gray-600">Confidence</p>
                 </div>
               </div>
 
-              {promptAnalysis.policy_violations.length > 0 && (
+              {promptGuardResult.policy_violations?.length > 0 && (
                 <div className="mb-4">
                   <h5 className="font-medium text-red-800 mb-2">Policy Violations</h5>
-                  {promptAnalysis.policy_violations.map((issue: string, index: number) => (
+                  {promptGuardResult.policy_violations.map((issue: string, index: number) => (
                     <div key={index} className="text-red-700 text-sm">• {issue}</div>
                   ))}
                 </div>
               )}
 
-              {promptAnalysis.content_flags.length > 0 && (
+              {promptGuardResult.content_flags?.length > 0 && (
                 <div className="mb-4">
                   <h5 className="font-medium text-yellow-800 mb-2">Content Flags</h5>
-                  {promptAnalysis.content_flags.map((flag: string, index: number) => (
+                  {promptGuardResult.content_flags.map((flag: string, index: number) => (
                     <div key={index} className="text-yellow-700 text-sm">• {flag}</div>
                   ))}
                 </div>
               )}
 
-              {promptAnalysis.suggestions.length > 0 && (
+              {promptGuardResult.suggestions?.length > 0 && (
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">Suggestions</h5>
-                  {promptAnalysis.suggestions.map((suggestion: string, index: number) => (
+                  {promptGuardResult.suggestions.map((suggestion: string, index: number) => (
                     <div key={index} className="text-blue-700 text-sm">• {suggestion}</div>
                   ))}
                 </div>
               )}
+              
+              {/* Show policy enforcement results if available */}
+              {policyEnforcerResult && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h5 className="font-medium text-gray-800 mb-2">Policy Enforcement</h5>
+                  <div className="text-sm text-gray-600">
+                    <p>Status: <span className={`font-medium ${policyEnforcerResult.allowed ? 'text-green-600' : 'text-red-600'}`}>
+                      {policyEnforcerResult.allowed ? 'Allowed' : 'Blocked'}
+                    </span></p>
+                    <p>Policies Evaluated: {policyEnforcerResult.applicable_policies_count || 0}</p>
+                    {policyEnforcerResult.enforcement_actions?.length > 0 && (
+                      <p>Actions: {policyEnforcerResult.enforcement_actions.join(', ')}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -212,48 +238,71 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h4 className="text-lg font-semibold mb-4">Audit Results</h4>
             
+            {/* Extract the actual output auditor results */}
+            {(() => {
+              const outputAuditorResult = outputAudit.output_auditor || outputAudit;
+              const policyEnforcerResult = outputAudit.policy_enforcer;
+              
+              return (
+                <>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{outputAudit.bias_score?.toFixed(1) || '0.0'}</p>
+                <p className="text-2xl font-bold text-gray-900">{outputAuditorResult.bias_score?.toFixed(1) || '0.0'}</p>
                 <p className="text-sm text-gray-600">Bias Score</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{outputAudit.toxicity_score?.toFixed(1) || '0.0'}</p>
+                <p className="text-2xl font-bold text-gray-900">{outputAuditorResult.toxicity_score?.toFixed(1) || '0.0'}</p>
                 <p className="text-sm text-gray-600">Toxicity Level</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{outputAudit.fairness_score?.toFixed(1) || '0.0'}</p>
+                <p className="text-2xl font-bold text-gray-900">{outputAuditorResult.fairness_score?.toFixed(1) || '0.0'}</p>
                 <p className="text-sm text-gray-600">Fairness Rating</p>
               </div>
             </div>
 
             <div className="mb-4">
               <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                outputAudit.audit_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                outputAudit.audit_status === 'REVIEW_RECOMMENDED' ? 'bg-yellow-100 text-yellow-800' :
+                outputAuditorResult.audit_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                outputAuditorResult.audit_status === 'REVIEW_RECOMMENDED' ? 'bg-yellow-100 text-yellow-800' :
                 'bg-red-100 text-red-800'
               }`}>
-                {outputAudit.audit_status}
+                {outputAuditorResult.audit_status || 'UNKNOWN'}
               </div>
             </div>
 
-            {outputAudit.policy_violations?.length > 0 && (
+            {outputAuditorResult.policy_violations?.length > 0 && (
               <div className="mb-4">
                 <h5 className="font-medium text-red-800 mb-2">Policy Violations</h5>
-                {outputAudit.policy_violations.map((violation: string, index: number) => (
+                {outputAuditorResult.policy_violations.map((violation: string, index: number) => (
                   <div key={index} className="text-red-700 text-sm">• {violation}</div>
                 ))}
               </div>
             )}
 
-            {outputAudit.recommendations?.length > 0 && (
+            {outputAuditorResult.recommendations?.length > 0 && (
               <div>
                 <h5 className="font-medium text-blue-800 mb-2">Recommendations</h5>
-                {outputAudit.recommendations.map((rec: string, index: number) => (
+                {outputAuditorResult.recommendations.map((rec: string, index: number) => (
                   <div key={index} className="text-blue-700 text-sm">• {rec}</div>
                 ))}
               </div>
             )}
+            
+            {/* Show policy enforcement results if available */}
+            {policyEnforcerResult && (
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <h5 className="font-medium text-gray-800 mb-2">Policy Enforcement</h5>
+                <div className="text-sm text-gray-600">
+                  <p>Status: <span className={`font-medium ${policyEnforcerResult.allowed ? 'text-green-600' : 'text-red-600'}`}>
+                    {policyEnforcerResult.allowed ? 'Allowed' : 'Blocked'}
+                  </span></p>
+                  <p>Policies Evaluated: {policyEnforcerResult.applicable_policies_count || 0}</p>
+                </div>
+              </div>
+            )}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
