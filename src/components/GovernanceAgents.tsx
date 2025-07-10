@@ -326,6 +326,629 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
     </div>
   );
 
+  const renderAdvisory = () => {
+    const [advisoryType, setAdvisoryType] = useState('prompt_blocked');
+    const [contextData, setContextData] = useState('');
+    const [violations, setViolations] = useState<string[]>([]);
+    const [riskFactors, setRiskFactors] = useState<string[]>([]);
+    const [advisoryResult, setAdvisoryResult] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    
+    // Sample advisory scenarios
+    const advisoryScenarios = [
+      {
+        id: 'prompt_blocked',
+        title: 'Prompt Blocked',
+        description: 'Get guidance when a prompt is blocked due to policy violations',
+        sampleContext: 'Generate a list of all employees with their personal information including social security numbers',
+        sampleViolations: ['Privacy Policy Violation', 'PII Exposure Risk'],
+        sampleRiskFactors: ['Data Privacy Risk', 'Compliance Violation']
+      },
+      {
+        id: 'output_flagged',
+        title: 'Output Flagged',
+        description: 'Get recommendations when AI output is flagged for review',
+        sampleContext: 'AI generated content about hiring practices that may contain bias',
+        sampleViolations: ['Bias Detection', 'Fairness Concern'],
+        sampleRiskFactors: ['Gender Bias', 'Discriminatory Language']
+      },
+      {
+        id: 'policy_violation',
+        title: 'Policy Violation',
+        description: 'Get guidance on policy violations and compliance issues',
+        sampleContext: 'User attempting to access administrative functions without proper authorization',
+        sampleViolations: ['Access Control Policy', 'Role Restriction'],
+        sampleRiskFactors: ['Unauthorized Access', 'Security Risk']
+      },
+      {
+        id: 'risk_warning',
+        title: 'Risk Warning',
+        description: 'Get advice on potential risks and mitigation strategies',
+        sampleContext: 'High-risk activity detected in user behavior patterns',
+        sampleViolations: [],
+        sampleRiskFactors: ['Anomalous Behavior', 'Security Threat', 'Data Exfiltration Risk']
+      }
+    ];
+
+    const handleGetAdvisory = async () => {
+      setLoading(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate mock advisory response
+      const mockAdvisory = {
+        advisory_type: advisoryType,
+        guidance: {
+          primary_message: getAdvisoryMessage(advisoryType),
+          specific_issues: violations,
+          ai_guidance: generateAIGuidance(advisoryType, contextData, violations, riskFactors),
+          action_required: determineRequiredAction(violations, riskFactors)
+        },
+        alternatives: generateAlternatives(advisoryType, violations),
+        educational_content: {
+          relevant_topics: getRelevantTopics(violations, riskFactors),
+          recommended_resources: getRecommendedResources(violations, riskFactors),
+          training_suggestions: getTrainingSuggestions(violations, riskFactors)
+        },
+        severity: determineSeverity(violations, riskFactors),
+        follow_up_required: violations.length > 0 || riskFactors.length > 1
+      };
+      
+      setAdvisoryResult(mockAdvisory);
+      setLoading(false);
+    };
+
+    const getAdvisoryMessage = (type: string) => {
+      const messages = {
+        prompt_blocked: "Your prompt was blocked due to potential policy violations. Please review and modify your request to ensure compliance with our governance policies.",
+        output_flagged: "The AI output was flagged for review due to potential bias or compliance concerns. Please consider the recommendations provided below.",
+        policy_violation: "This action violates organizational policies. Please review the applicable guidelines and modify your approach.",
+        risk_warning: "This activity has been flagged as potentially risky. Please proceed with caution and consider the mitigation strategies provided."
+      };
+      return messages[type as keyof typeof messages] || "Please review your request for compliance.";
+    };
+
+    const generateAIGuidance = (type: string, context: string, violations: string[], risks: string[]) => {
+      const guidanceTemplates = {
+        prompt_blocked: `Based on the analysis of your prompt, it appears to request access to sensitive personal information. This violates our privacy protection policies. To proceed, please:
+
+1. Remove any requests for personally identifiable information (PII)
+2. Focus on aggregate or anonymized data instead
+3. Specify a legitimate business purpose for the information
+4. Ensure compliance with data protection regulations
+
+Consider rephrasing your request to focus on the business objective rather than specific personal details.`,
+        
+        output_flagged: `The generated content has been flagged for potential bias concerns. This may impact fairness and inclusivity. To improve the content:
+
+1. Review the language for any generalizations or stereotypes
+2. Use more inclusive and neutral terminology
+3. Provide balanced perspectives on the topic
+4. Consider the impact on different demographic groups
+
+We recommend revising the content to ensure it meets our fairness and inclusion standards.`,
+        
+        policy_violation: `Your request conflicts with established governance policies. To resolve this:
+
+1. Review the specific policy requirements mentioned
+2. Ensure you have appropriate authorization for this action
+3. Consider alternative approaches that comply with policies
+4. Contact your administrator if you believe you should have access
+
+Policy compliance is essential for maintaining security and governance standards.`,
+        
+        risk_warning: `The system has detected elevated risk factors in this activity. To mitigate risks:
+
+1. Verify the legitimacy and necessity of this action
+2. Implement additional security measures if proceeding
+3. Monitor the activity closely for any anomalies
+4. Document the business justification for the activity
+
+Consider whether this activity is essential and if there are safer alternatives.`
+      };
+      
+      return guidanceTemplates[type as keyof typeof guidanceTemplates] || "Please review the specific issues and recommendations provided.";
+    };
+
+    const generateAlternatives = (type: string, violations: string[]) => {
+      const alternatives = [];
+      
+      if (violations.includes('Privacy Policy Violation') || violations.includes('PII Exposure Risk')) {
+        alternatives.push({
+          type: 'privacy_protection',
+          title: 'Use Anonymized Data',
+          description: 'Request aggregate or anonymized data instead of personal information',
+          example: 'Instead of "employee names and SSNs", ask for "employee count by department"'
+        });
+      }
+      
+      if (violations.includes('Bias Detection') || violations.includes('Fairness Concern')) {
+        alternatives.push({
+          type: 'bias_mitigation',
+          title: 'Use Inclusive Language',
+          description: 'Rephrase using neutral, inclusive language that avoids assumptions',
+          example: 'Use "candidates" instead of gender-specific terms, focus on qualifications'
+        });
+      }
+      
+      if (violations.includes('Access Control Policy')) {
+        alternatives.push({
+          type: 'access_control',
+          title: 'Request Proper Authorization',
+          description: 'Contact your administrator to request appropriate access permissions',
+          example: 'Submit a formal access request through the proper channels'
+        });
+      }
+      
+      // Add general alternatives
+      alternatives.push({
+        type: 'general',
+        title: 'Consult Documentation',
+        description: 'Review our governance guidelines and best practices documentation',
+        example: 'Check the AI usage policy and compliance handbook for guidance'
+      });
+      
+      return alternatives.slice(0, 3); // Limit to 3 alternatives
+    };
+
+    const getRelevantTopics = (violations: string[], risks: string[]) => {
+      const topics = new Set<string>();
+      
+      violations.concat(risks).forEach(item => {
+        const itemLower = item.toLowerCase();
+        if (itemLower.includes('bias') || itemLower.includes('fairness')) {
+          topics.add('AI Bias and Fairness');
+        }
+        if (itemLower.includes('privacy') || itemLower.includes('pii')) {
+          topics.add('Data Privacy and Protection');
+        }
+        if (itemLower.includes('security') || itemLower.includes('access')) {
+          topics.add('AI Security and Access Control');
+        }
+        if (itemLower.includes('compliance') || itemLower.includes('policy')) {
+          topics.add('Regulatory Compliance');
+        }
+      });
+      
+      return Array.from(topics);
+    };
+
+    const getRecommendedResources = (violations: string[], risks: string[]) => {
+      const resources = [];
+      const topics = getRelevantTopics(violations, risks);
+      
+      topics.forEach(topic => {
+        switch (topic) {
+          case 'AI Bias and Fairness':
+            resources.push({
+              title: 'AI Fairness Guidelines',
+              description: 'Comprehensive guide to identifying and mitigating bias in AI systems',
+              type: 'guide'
+            });
+            break;
+          case 'Data Privacy and Protection':
+            resources.push({
+              title: 'Data Privacy Best Practices',
+              description: 'Guidelines for handling personal and sensitive information',
+              type: 'policy'
+            });
+            break;
+          case 'AI Security and Access Control':
+            resources.push({
+              title: 'AI Security Framework',
+              description: 'Security best practices for AI systems and access management',
+              type: 'framework'
+            });
+            break;
+          case 'Regulatory Compliance':
+            resources.push({
+              title: 'Compliance Handbook',
+              description: 'Overview of regulatory requirements and compliance procedures',
+              type: 'handbook'
+            });
+            break;
+        }
+      });
+      
+      return resources;
+    };
+
+    const getTrainingSuggestions = (violations: string[], risks: string[]) => {
+      const topics = getRelevantTopics(violations, risks);
+      const suggestions = [];
+      
+      topics.forEach(topic => {
+        switch (topic) {
+          case 'AI Bias and Fairness':
+            suggestions.push('Complete the AI Ethics and Bias Awareness training module');
+            break;
+          case 'Data Privacy and Protection':
+            suggestions.push('Take the Data Privacy and GDPR compliance course');
+            break;
+          case 'AI Security and Access Control':
+            suggestions.push('Attend the AI Security and Access Management workshop');
+            break;
+          case 'Regulatory Compliance':
+            suggestions.push('Review the Regulatory Compliance certification program');
+            break;
+        }
+      });
+      
+      return suggestions;
+    };
+
+    const determineRequiredAction = (violations: string[], risks: string[]) => {
+      if (violations.length > 0) {
+        return 'modify_request';
+      } else if (risks.length > 0) {
+        return 'review_and_proceed';
+      }
+      return 'no_action_required';
+    };
+
+    const determineSeverity = (violations: string[], risks: string[]) => {
+      const totalIssues = violations.length + risks.length;
+      const hasHighSeverityKeywords = violations.concat(risks).some(item => 
+        ['security', 'privacy', 'harmful', 'discrimination'].some(keyword => 
+          item.toLowerCase().includes(keyword)
+        )
+      );
+      
+      if (hasHighSeverityKeywords || totalIssues >= 3) {
+        return 'high';
+      } else if (totalIssues >= 2) {
+        return 'medium';
+      }
+      return 'low';
+    };
+
+    const loadScenario = (scenario: any) => {
+      setAdvisoryType(scenario.id);
+      setContextData(scenario.sampleContext);
+      setViolations(scenario.sampleViolations);
+      setRiskFactors(scenario.sampleRiskFactors);
+      setAdvisoryResult(null);
+    };
+
+    const addViolation = (violation: string) => {
+      if (violation && !violations.includes(violation)) {
+        setViolations([...violations, violation]);
+      }
+    };
+
+    const removeViolation = (index: number) => {
+      setViolations(violations.filter((_, i) => i !== index));
+    };
+
+    const addRiskFactor = (risk: string) => {
+      if (risk && !riskFactors.includes(risk)) {
+        setRiskFactors([...riskFactors, risk]);
+      }
+    };
+
+    const removeRiskFactor = (index: number) => {
+      setRiskFactors(riskFactors.filter((_, i) => i !== index));
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-purple-900 mb-2">💡 Advisory Agent</h3>
+          <p className="text-purple-700">Provides explanations for rejected/modified requests and suggests compliant alternatives.</p>
+        </div>
+
+        {/* Quick Scenarios */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Advisory Scenarios</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {advisoryScenarios.map((scenario) => (
+              <div key={scenario.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => loadScenario(scenario)}>
+                <h5 className="font-medium text-gray-900 mb-2">{scenario.title}</h5>
+                <p className="text-sm text-gray-600 mb-3">{scenario.description}</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadScenario(scenario);
+                  }}
+                  className="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded hover:bg-purple-200 transition-colors"
+                >
+                  Load Scenario
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Advisory Configuration */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Advisory Configuration</h4>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Advisory Type</label>
+                <select
+                  value={advisoryType}
+                  onChange={(e) => setAdvisoryType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="prompt_blocked">Prompt Blocked</option>
+                  <option value="output_flagged">Output Flagged</option>
+                  <option value="policy_violation">Policy Violation</option>
+                  <option value="risk_warning">Risk Warning</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Context Information</label>
+                <textarea
+                  value={contextData}
+                  onChange={(e) => setContextData(e.target.value)}
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Describe the situation that triggered the advisory request..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Policy Violations</label>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Add a policy violation..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          addViolation((e.target as HTMLInputElement).value);
+                          (e.target as HTMLInputElement).value = '';
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Add a policy violation..."]') as HTMLInputElement;
+                        if (input) {
+                          addViolation(input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {violations.map((violation, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                        {violation}
+                        <button
+                          onClick={() => removeViolation(index)}
+                          className="ml-2 text-red-600 hover:text-red-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Risk Factors</label>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Add a risk factor..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          addRiskFactor((e.target as HTMLInputElement).value);
+                          (e.target as HTMLInputElement).value = '';
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Add a risk factor..."]') as HTMLInputElement;
+                        if (input) {
+                          addRiskFactor(input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {riskFactors.map((risk, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                        {risk}
+                        <button
+                          onClick={() => removeRiskFactor(index)}
+                          className="ml-2 text-yellow-600 hover:text-yellow-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleGetAdvisory}
+                disabled={!contextData || loading}
+                className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 transition-colors flex items-center justify-center space-x-2"
+              >
+                {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
+                <span>{loading ? 'Generating Advisory...' : 'Get Advisory Guidance'}</span>
+              </button>
+            </div>
+
+            {/* Advisory Results */}
+            <div>
+              {advisoryResult && (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-semibold text-gray-900">Advisory Summary</h5>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        advisoryResult.severity === 'high' ? 'bg-red-100 text-red-800' :
+                        advisoryResult.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {advisoryResult.severity} severity
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-3">{advisoryResult.guidance.primary_message}</p>
+                    <div className="text-sm">
+                      <span className="font-medium">Action Required: </span>
+                      <span className="capitalize">{advisoryResult.guidance.action_required.replace('_', ' ')}</span>
+                    </div>
+                    {advisoryResult.follow_up_required && (
+                      <div className="mt-2 text-sm text-orange-600">
+                        ⚠️ Follow-up required
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-900 mb-3">AI Guidance</h5>
+                    <div className="text-sm text-blue-800 whitespace-pre-line">
+                      {advisoryResult.guidance.ai_guidance}
+                    </div>
+                  </div>
+
+                  {advisoryResult.alternatives.length > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h5 className="font-semibold text-green-900 mb-3">Suggested Alternatives</h5>
+                      <div className="space-y-3">
+                        {advisoryResult.alternatives.map((alt: any, index: number) => (
+                          <div key={index} className="bg-white border border-green-200 rounded-lg p-3">
+                            <h6 className="font-medium text-green-900">{alt.title}</h6>
+                            <p className="text-sm text-green-700 mt-1">{alt.description}</p>
+                            {alt.example && (
+                              <p className="text-sm text-green-600 mt-2 italic">Example: {alt.example}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {advisoryResult.educational_content.relevant_topics.length > 0 && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <h5 className="font-semibold text-purple-900 mb-3">Educational Resources</h5>
+                      
+                      <div className="mb-4">
+                        <h6 className="font-medium text-purple-800 mb-2">Relevant Topics</h6>
+                        <div className="flex flex-wrap gap-2">
+                          {advisoryResult.educational_content.relevant_topics.map((topic: string, index: number) => (
+                            <span key={index} className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {advisoryResult.educational_content.recommended_resources.length > 0 && (
+                        <div className="mb-4">
+                          <h6 className="font-medium text-purple-800 mb-2">Recommended Resources</h6>
+                          <div className="space-y-2">
+                            {advisoryResult.educational_content.recommended_resources.map((resource: any, index: number) => (
+                              <div key={index} className="text-sm">
+                                <span className="font-medium text-purple-900">{resource.title}</span>
+                                <span className="text-purple-700"> - {resource.description}</span>
+                                <span className="text-purple-600 text-xs ml-2">({resource.type})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {advisoryResult.educational_content.training_suggestions.length > 0 && (
+                        <div>
+                          <h6 className="font-medium text-purple-800 mb-2">Training Suggestions</h6>
+                          <ul className="text-sm text-purple-700 space-y-1">
+                            {advisoryResult.educational_content.training_suggestions.map((suggestion: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <span className="text-purple-500 mr-2">•</span>
+                                {suggestion}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!advisoryResult && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <Lightbulb className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Configure your advisory request and click "Get Advisory Guidance" to receive personalized recommendations.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Advisory Activity */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Advisory Activity</h4>
+          <div className="space-y-3">
+            {[
+              {
+                timestamp: '2024-01-07 14:32:15',
+                type: 'Prompt Blocked',
+                severity: 'medium',
+                summary: 'Privacy violation detected - provided guidance on data anonymization'
+              },
+              {
+                timestamp: '2024-01-07 14:15:42',
+                type: 'Output Flagged',
+                severity: 'low',
+                summary: 'Bias concern addressed - suggested inclusive language alternatives'
+              },
+              {
+                timestamp: '2024-01-07 13:58:21',
+                type: 'Policy Violation',
+                severity: 'high',
+                summary: 'Access control violation - directed to proper authorization process'
+              },
+              {
+                timestamp: '2024-01-07 13:45:33',
+                type: 'Risk Warning',
+                severity: 'medium',
+                summary: 'Security risk identified - provided mitigation strategies'
+              }
+            ].map((activity, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      activity.severity === 'high' ? 'bg-red-100 text-red-800' :
+                      activity.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {activity.type}
+                    </span>
+                    <span className="text-sm text-gray-600">{activity.timestamp}</span>
+                  </div>
+                  <p className="text-sm text-gray-700 mt-1">{activity.summary}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPolicyEnforcer = () => {
     // Mock policy enforcement data
     const activePolicies = [
@@ -708,7 +1331,7 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
       case 'audit-logger':
         return renderAuditLogger();
       case 'advisory':
-        return renderPlaceholder('Advisory Agent', 'Provides explanations and suggests compliant alternatives.');
+        return renderAdvisory();
       case 'feedback':
         return renderPlaceholder('Feedback Agent', 'Collect and analyze user feedback to improve the governance system.');
       default:
