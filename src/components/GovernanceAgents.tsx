@@ -273,47 +273,71 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center">
                   <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    promptAnalysis.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                    promptAnalysis.status === 'WARNING' ? 'bg-yellow-100 text-yellow-800' :
+                    promptAnalysis.prompt_guard?.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                    promptAnalysis.prompt_guard?.status === 'WARNING' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-red-100 text-red-800'
                   }`}>
-                    {promptAnalysis.status}
+                    {promptAnalysis.prompt_guard?.status || 'UNKNOWN'}
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.risk_score.toFixed(1)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.prompt_guard?.risk_score?.toFixed(1) || '0.0'}</p>
                   <p className="text-sm text-gray-600">Risk Score</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.confidence.toFixed(1)}%</p>
+                  <p className="text-2xl font-bold text-gray-900">{promptAnalysis.prompt_guard?.confidence?.toFixed(1) || '0.0'}%</p>
                   <p className="text-sm text-gray-600">Confidence</p>
                 </div>
               </div>
 
-              {promptAnalysis.policy_violations.length > 0 && (
+              {promptAnalysis.prompt_guard?.policy_violations?.length > 0 && (
                 <div className="mb-4">
                   <h5 className="font-medium text-red-800 mb-2">Policy Violations</h5>
-                  {promptAnalysis.policy_violations.map((issue: string, index: number) => (
+                  {promptAnalysis.prompt_guard.policy_violations.map((issue: string, index: number) => (
                     <div key={index} className="text-red-700 text-sm">• {issue}</div>
                   ))}
                 </div>
               )}
 
-              {promptAnalysis.content_flags.length > 0 && (
+              {promptAnalysis.prompt_guard?.content_flags?.length > 0 && (
                 <div className="mb-4">
                   <h5 className="font-medium text-yellow-800 mb-2">Content Flags</h5>
-                  {promptAnalysis.content_flags.map((flag: string, index: number) => (
+                  {promptAnalysis.prompt_guard.content_flags.map((flag: string, index: number) => (
                     <div key={index} className="text-yellow-700 text-sm">• {flag}</div>
                   ))}
                 </div>
               )}
 
-              {promptAnalysis.suggestions.length > 0 && (
+              {promptAnalysis.prompt_guard?.suggestions?.length > 0 && (
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">Suggestions</h5>
-                  {promptAnalysis.suggestions.map((suggestion: string, index: number) => (
+                  {promptAnalysis.prompt_guard.suggestions.map((suggestion: string, index: number) => (
                     <div key={index} className="text-blue-700 text-sm">• {suggestion}</div>
                   ))}
+                </div>
+              )}
+
+              {/* Show additional agent results if available */}
+              {promptAnalysis.policy_enforcer && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h5 className="font-medium text-gray-900 mb-2">Policy Enforcement Results</h5>
+                  <div className="mb-2">
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      promptAnalysis.policy_enforcer.allowed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {promptAnalysis.policy_enforcer.allowed ? 'ALLOWED' : 'BLOCKED'}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {promptAnalysis.policy_enforcer.applicable_policies_count} policies evaluated
+                  </div>
+                  {promptAnalysis.policy_enforcer.enforcement_actions?.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-sm text-orange-600">
+                        Actions: {promptAnalysis.policy_enforcer.enforcement_actions.join(', ')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
