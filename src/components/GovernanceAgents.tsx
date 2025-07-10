@@ -17,6 +17,14 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
   const [promptText, setPromptText] = useState('');
   const [outputText, setOutputText] = useState('');
   
+  // Advisory Agent state - moved to top level to avoid conditional hook calls
+  const [advisoryType, setAdvisoryType] = useState('prompt_blocked');
+  const [advisoryContext, setAdvisoryContext] = useState('');
+  const [violations, setViolations] = useState<string[]>([]);
+  const [riskFactors, setRiskFactors] = useState<string[]>([]);
+  const [newViolation, setNewViolation] = useState('');
+  const [newRiskFactor, setNewRiskFactor] = useState('');
+  
   // Policy Enforcer state - moved to top level to avoid hooks error
   const [testContent, setTestContent] = useState('');
   const [activityType, setActivityType] = useState('prompt_submission');
@@ -27,6 +35,7 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
   // Use governance hooks
   const { data: promptAnalysis, loading: promptLoading, error: promptError, analyzePrompt } = usePromptAnalysis();
   const { data: outputAudit, loading: outputLoading, error: outputError, auditOutput } = useOutputAudit();
+  const { data: advisoryResult, loading: advisoryLoading, error: advisoryError, getAdvisory } = useAdvisory();
 
   const tabs = [
     { id: 'prompt-guard', label: 'Prompt Guard', icon: Shield },
@@ -361,15 +370,6 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
         sampleRiskFactors: ['Unauthorized Access', 'Security Risk']
       },
       {
-        id: 'risk_warning',
-        title: 'Risk Warning',
-        description: 'Get advice on potential risks and mitigation strategies',
-        sampleContext: 'High-risk activity detected in user behavior patterns',
-        sampleViolations: [],
-        sampleRiskFactors: ['Anomalous Behavior', 'Security Threat', 'Data Exfiltration Risk']
-      }
-    ];
-
     const handleGetAdvisory = async () => {
       setLoading(true);
       
