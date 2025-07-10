@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Search, AlertTriangle, FileText, Lightbulb, MessageSquare } from 'lucide-react';
+import { Shield, Search, AlertTriangle, FileText, Lightbulb, MessageSquare, TrendingUp, CheckCircle, Activity, Database, Clock, Calendar, Download, RefreshCw, Settings } from 'lucide-react';
 import { usePromptAnalysis, useOutputAudit } from '../hooks/useGovernance';
 
 interface User {
@@ -706,7 +706,7 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
       case 'policy-enforcer':
         return renderPolicyEnforcer();
       case 'audit-logger':
-        return renderPlaceholder('Audit Logger Agent', 'Comprehensive logging of all interactions and agent decisions.');
+        return renderAuditLogger();
       case 'advisory':
         return renderPlaceholder('Advisory Agent', 'Provides explanations and suggests compliant alternatives.');
       case 'feedback':
@@ -714,6 +714,394 @@ const GovernanceAgents: React.FC<GovernanceAgentsProps> = ({ user }) => {
       default:
         return renderPromptGuard();
     }
+  };
+
+  const renderAuditLogger = () => {
+    // Mock audit data
+    const auditStats = {
+      total_logs_today: 12847,
+      storage_locations: ['OpenSearch', 'DynamoDB'],
+      retention_period: '90 days',
+      compliance_rate: 99.8,
+      last_backup: '2024-01-07T14:00:00Z',
+      storage_usage: 78.5
+    };
+
+    const recentLogs = [
+      {
+        log_id: 'audit_20240107_143015_1234',
+        timestamp: '2024-01-07T14:30:15Z',
+        event_type: 'prompt_analysis',
+        agent_name: 'PromptGuardAgent',
+        user_id: 'demo_user_admin',
+        user_role: 'admin',
+        session_id: 'session_abc123',
+        compliance_status: 'compliant',
+        risk_level: 'low',
+        performance_metrics: {
+          processing_time: 245,
+          memory_usage: 12.5,
+          api_calls: 3
+        },
+        requires_attention: false
+      },
+      {
+        log_id: 'audit_20240107_142845_5678',
+        timestamp: '2024-01-07T14:28:45Z',
+        event_type: 'output_audit',
+        agent_name: 'OutputAuditorAgent',
+        user_id: 'demo_user_analyst',
+        user_role: 'analyst',
+        session_id: 'session_def456',
+        compliance_status: 'warning',
+        risk_level: 'medium',
+        performance_metrics: {
+          processing_time: 1250,
+          memory_usage: 28.3,
+          api_calls: 7
+        },
+        requires_attention: true
+      },
+      {
+        log_id: 'audit_20240107_142630_9012',
+        timestamp: '2024-01-07T14:26:30Z',
+        event_type: 'policy_enforcement',
+        agent_name: 'PolicyEnforcerAgent',
+        user_id: 'demo_user_user',
+        user_role: 'user',
+        session_id: 'session_ghi789',
+        compliance_status: 'violation',
+        risk_level: 'high',
+        performance_metrics: {
+          processing_time: 89,
+          memory_usage: 8.7,
+          api_calls: 2
+        },
+        requires_attention: true
+      },
+      {
+        log_id: 'audit_20240107_142415_3456',
+        timestamp: '2024-01-07T14:24:15Z',
+        event_type: 'feedback_submission',
+        agent_name: 'FeedbackAgent',
+        user_id: 'demo_user_analyst',
+        user_role: 'analyst',
+        session_id: 'session_jkl012',
+        compliance_status: 'compliant',
+        risk_level: 'low',
+        performance_metrics: {
+          processing_time: 156,
+          memory_usage: 5.2,
+          api_calls: 1
+        },
+        requires_attention: false
+      },
+      {
+        log_id: 'audit_20240107_142200_7890',
+        timestamp: '2024-01-07T14:22:00Z',
+        event_type: 'advisory_request',
+        agent_name: 'AdvisoryAgent',
+        user_id: 'demo_user_admin',
+        user_role: 'admin',
+        session_id: 'session_mno345',
+        compliance_status: 'compliant',
+        risk_level: 'low',
+        performance_metrics: {
+          processing_time: 890,
+          memory_usage: 15.8,
+          api_calls: 5
+        },
+        requires_attention: false
+      }
+    ];
+
+    const logCategories = [
+      { name: 'Prompt Analysis', count: 3247, percentage: 35.2 },
+      { name: 'Output Audit', count: 2891, percentage: 31.4 },
+      { name: 'Policy Enforcement', count: 1456, percentage: 15.8 },
+      { name: 'Advisory Requests', count: 987, percentage: 10.7 },
+      { name: 'Feedback Collection', count: 623, percentage: 6.9 }
+    ];
+
+    const storageMetrics = [
+      { location: 'OpenSearch', status: 'healthy', logs_stored: 8945, last_sync: '2024-01-07T14:35:00Z' },
+      { location: 'DynamoDB', status: 'healthy', logs_stored: 8945, last_sync: '2024-01-07T14:35:00Z' }
+    ];
+
+    const getComplianceColor = (status: string) => {
+      switch (status) {
+        case 'compliant': return 'bg-green-100 text-green-800';
+        case 'warning': return 'bg-yellow-100 text-yellow-800';
+        case 'violation': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    const getRiskColor = (level: string) => {
+      switch (level) {
+        case 'low': return 'bg-green-100 text-green-800';
+        case 'medium': return 'bg-yellow-100 text-yellow-800';
+        case 'high': return 'bg-red-100 text-red-800';
+        case 'critical': return 'bg-purple-100 text-purple-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    const getStorageStatusColor = (status: string) => {
+      switch (status) {
+        case 'healthy': return 'text-green-600';
+        case 'warning': return 'text-yellow-600';
+        case 'error': return 'text-red-600';
+        default: return 'text-gray-600';
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-purple-900 mb-2">📋 Audit Logger Agent</h3>
+          <p className="text-purple-700">Comprehensive logging of all interactions and agent decisions to Amazon OpenSearch and DynamoDB.</p>
+        </div>
+
+        {/* Audit Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Logs Today</p>
+                <p className="text-2xl font-bold text-gray-900">{auditStats.total_logs_today.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-sm font-medium text-green-600">+234 from yesterday</span>
+                </div>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <FileText className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Compliance Rate</p>
+                <p className="text-2xl font-bold text-gray-900">{auditStats.compliance_rate}%</p>
+                <div className="flex items-center mt-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                  <span className="text-sm font-medium text-green-600">Excellent</span>
+                </div>
+              </div>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <Shield className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Storage Usage</p>
+                <p className="text-2xl font-bold text-gray-900">{auditStats.storage_usage}%</p>
+                <div className="flex items-center mt-2">
+                  <Activity className="h-4 w-4 text-blue-500 mr-1" />
+                  <span className="text-sm font-medium text-blue-600">Normal</span>
+                </div>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <Database className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Retention Period</p>
+                <p className="text-2xl font-bold text-gray-900">{auditStats.retention_period}</p>
+                <div className="flex items-center mt-2">
+                  <Clock className="h-4 w-4 text-gray-500 mr-1" />
+                  <span className="text-sm font-medium text-gray-600">Policy compliant</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <Calendar className="h-6 w-6 text-gray-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Audit Logs */}
+          <div className="lg:col-span-2">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h4 className="text-lg font-semibold text-gray-900">Recent Audit Logs</h4>
+                <div className="flex items-center space-x-2">
+                  <button className="text-sm text-blue-600 hover:text-blue-800">View All</button>
+                  <button className="text-sm text-green-600 hover:text-green-800">Export</button>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Event
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Agent
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Risk
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Time
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentLogs.map((log) => (
+                      <tr key={log.log_id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{log.event_type.replace('_', ' ')}</div>
+                            <div className="text-sm text-gray-500">ID: {log.log_id.split('_').pop()}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {log.agent_name.replace('Agent', '')}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm text-gray-900">{log.user_id.replace('demo_user_', '')}</div>
+                            <div className="text-sm text-gray-500">{log.user_role}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getComplianceColor(log.compliance_status)}`}>
+                            {log.compliance_status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRiskColor(log.risk_level)}`}>
+                            {log.risk_level}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(log.timestamp).toLocaleTimeString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar - Storage Status & Log Categories */}
+          <div className="space-y-6">
+            {/* Storage Status */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h4 className="font-medium text-gray-900 mb-4">Storage Status</h4>
+              <div className="space-y-4">
+                {storageMetrics.map((storage, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-sm font-medium text-gray-900">{storage.location}</h5>
+                      <span className={`text-sm font-medium ${getStorageStatusColor(storage.status)}`}>
+                        {storage.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <p>Logs: {storage.logs_stored.toLocaleString()}</p>
+                      <p>Last sync: {new Date(storage.last_sync).toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Log Categories */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h4 className="font-medium text-gray-900 mb-4">Log Categories</h4>
+              <div className="space-y-3">
+                {logCategories.map((category, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-gray-900">{category.name}</span>
+                        <span className="text-sm text-gray-600">{category.count.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-purple-500 h-2 rounded-full"
+                          style={{ width: `${category.percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{category.percentage}%</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Performance Metrics */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h4 className="font-medium text-gray-900 mb-4">Performance Metrics</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Avg Processing Time</span>
+                  <span className="text-sm font-medium text-gray-900">326ms</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Memory Usage</span>
+                  <span className="text-sm font-medium text-gray-900">14.1MB</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">API Calls/min</span>
+                  <span className="text-sm font-medium text-gray-900">3.6</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Error Rate</span>
+                  <span className="text-sm font-medium text-green-600">0.2%</span>
+                </div>
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">System Health</span>
+                    <span className="text-sm font-medium text-green-600">Excellent</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Audit Controls */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Audit Controls</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+              <Download className="h-4 w-4" />
+              <span>Export Audit Report</span>
+            </button>
+            <button className="flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
+              <RefreshCw className="h-4 w-4" />
+              <span>Refresh Logs</span>
+            </button>
+            <button className="flex items-center justify-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors">
+              <Settings className="h-4 w-4" />
+              <span>Configure Logging</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
